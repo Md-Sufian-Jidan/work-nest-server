@@ -32,6 +32,7 @@ async function run() {
     await client.connect();
 
     const userCollection = client.db('work-nest').collection('users');
+    const serviceCollection = client.db('work-nest').collection('services');
 
     app.post('/users', async (req, res) => {
       const user = req.body;
@@ -49,9 +50,15 @@ async function run() {
       // if (email !== req.decoded.email) {
       //   return res.status(403).send({ message: 'forbidden access' })
       // }
+      console.log(email);
       const query = { email: email };
       const result = await userCollection.findOne(query);
       console.log(result);
+      res.send(result);
+    });
+
+    app.get('/services', async (req, res) => {
+      const result = await serviceCollection.find().toArray();
       res.send(result);
     });
 
