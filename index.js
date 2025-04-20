@@ -33,6 +33,7 @@ async function run() {
 
     const userCollection = client.db('work-nest').collection('users');
     const serviceCollection = client.db('work-nest').collection('services');
+    const testimonialsCollection = client.db('work-nest').collection('testimonials');
 
     app.post('/users', async (req, res) => {
       const user = req.body;
@@ -57,6 +58,16 @@ async function run() {
       res.send(result);
     });
 
+    app.get('/employees-list', async (req, res) => {
+      const result = userCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.get('/testimonials', async (req, res) => {
+      const result = await testimonialsCollection.find().toArray();
+      res.send(result);
+    });
+    
     app.get('/services', async (req, res) => {
       const result = await serviceCollection.find().toArray();
       res.send(result);
