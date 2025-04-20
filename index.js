@@ -6,7 +6,13 @@ const app = express();
 const port = process.env.port || 5000;
 
 //middlewares
-app.use(cors());
+app.use(cors({
+  origin: [
+    "http://localhost:5173",
+    "http://localhost:5174",
+  ],
+  credentials: true
+}));
 app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.qvjjrvn.mongodb.net/?appName=Cluster0`;
@@ -35,6 +41,17 @@ async function run() {
         return res.send({ message: 'user already exists', insertedId: null })
       }
       const result = await userCollection.insertOne(user);
+      res.send(result);
+    });
+
+    app.get('/role/:email', async (req, res) => {
+      const email = req.params.email;
+      // if (email !== req.decoded.email) {
+      //   return res.status(403).send({ message: 'forbidden access' })
+      // }
+      const query = { email: email };
+      const result = await userCollection.findOne(query);
+      console.log(result);
       res.send(result);
     });
 
