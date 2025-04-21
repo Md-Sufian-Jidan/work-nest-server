@@ -32,6 +32,7 @@ async function run() {
     await client.connect();
 
     const userCollection = client.db('work-nest').collection('users');
+    const workSheetCollection = client.db('work-nest').collection('workSheets');
     const serviceCollection = client.db('work-nest').collection('services');
     const reviewsCollection = client.db('work-nest').collection('reviews');
     const featuresCollection = client.db('work-nest').collection('features');
@@ -56,6 +57,13 @@ async function run() {
       const query = { email: email };
       const result = await userCollection.findOne(query);
       console.log(result);
+      res.send(result);
+    });
+
+    // employee related apis
+    app.post('/work-sheet', async (req, res) => {
+      const entry = req.body;
+      const result = await workSheetCollection.insertOne(entry);
       res.send(result);
     });
 
