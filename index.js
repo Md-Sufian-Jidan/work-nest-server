@@ -33,6 +33,7 @@ async function run() {
 
     const userCollection = client.db('work-nest').collection('users');
     const workSheetCollection = client.db('work-nest').collection('workSheets');
+    const contactCollection = client.db('work-nest').collection('contacts');
     const serviceCollection = client.db('work-nest').collection('services');
     const reviewsCollection = client.db('work-nest').collection('reviews');
     const featuresCollection = client.db('work-nest').collection('features');
@@ -57,6 +58,13 @@ async function run() {
       const query = { email: email };
       const result = await userCollection.findOne(query);
       console.log(result);
+      res.send(result);
+    });
+
+    // contact page api
+    app.post("/contact-us", async (req, res) => {
+      const messageData = req.body;
+      const result = await contactCollection.insertOne(messageData);
       res.send(result);
     });
 
@@ -93,12 +101,12 @@ async function run() {
     app.patch('/fired-user/:id', async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
-      const makeHr = {
+      const fireEmployee = {
         $set: {
           status: 'fired'
         },
       };
-      const result = await userCollection.updateOne(filter, makeHr);
+      const result = await userCollection.updateOne(filter, fireEmployee);
       res.send(result);
     });
 
