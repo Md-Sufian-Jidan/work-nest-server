@@ -110,6 +110,11 @@ async function run() {
       res.send(result);
     });
 
+    app.get('/admin-contact', async (req, res) => {
+      const result = await contactCollection.find().toArray();
+      res.send(result);
+    });
+
     // employee related apis
     app.post('/work-sheet', async (req, res) => {
       const entry = req.body;
