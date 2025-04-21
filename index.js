@@ -144,6 +144,33 @@ async function run() {
       const result = await userCollection.updateOne(filter, verifyEmployee);
       res.send(result);
     });
+
+    // app.get('/all-work-records', async (req, res) => {
+    //   const employee = req?.query?.employee || "";
+    //   const query = employee ? { name: employee } : {};
+    //   const result = await workSheetCollection.find(query).toArray();
+    //   console.log('15222222',query);
+    //   res.send(result);
+    // });
+
+    app.get('/all-work-records', async (req, res) => {
+      const employee = req.query.employee || "";
+
+      // Adjust 'employeeName' to match your DB schema
+      const query = employee ? { employeeName: employee } : {};
+
+      console.log("Filtering by employee:", employee);
+      console.log("Query:", query);
+
+      try {
+        const result = await workSheetCollection.find(query).toArray();
+        res.send(result);
+      } catch (err) {
+        console.error("Error fetching work records:", err);
+        res.status(500).send({ error: "Something went wrong" });
+      }
+    });
+
     app.get('/testimonials', async (req, res) => {
       const result = await reviewsCollection.find().toArray();
       res.send(result);
