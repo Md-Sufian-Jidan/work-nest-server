@@ -54,10 +54,8 @@ async function run() {
       // if (email !== req.decoded.email) {
       //   return res.status(403).send({ message: 'forbidden access' })
       // }
-      console.log(email);
       const query = { email: email };
       const result = await userCollection.findOne(query);
-      console.log(result);
       res.send(result);
     });
 
@@ -130,10 +128,22 @@ async function run() {
     });
 
     app.get('/employees-list', async (req, res) => {
-      const result = userCollection.find().toArray();
+      const result = await userCollection.find().toArray();
       res.send(result);
     });
 
+    app.patch('/verify-employee/:id', async (req, res) => {
+      const update = req.body?.verified;
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const verifyEmployee = {
+        $set: {
+          verified: update
+        },
+      };
+      const result = await userCollection.updateOne(filter, verifyEmployee);
+      res.send(result);
+    });
     app.get('/testimonials', async (req, res) => {
       const result = await reviewsCollection.find().toArray();
       res.send(result);
