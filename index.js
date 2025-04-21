@@ -90,6 +90,18 @@ async function run() {
       res.send(result);
     });
 
+    app.patch('/fired-user/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const makeHr = {
+        $set: {
+          status: 'fired'
+        },
+      };
+      const result = await userCollection.updateOne(filter, makeHr);
+      res.send(result);
+    });
+
     // employee related apis
     app.post('/work-sheet', async (req, res) => {
       const entry = req.body;
