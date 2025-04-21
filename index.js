@@ -77,16 +77,16 @@ async function run() {
       const result = await userCollection.updateOne(filter, updatedSalary);
       res.send(result);
     });
-    
-    app.patch('/update-salary/:id', async (req, res) => {
+
+    app.patch('/make-hr/:id', async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
-      const updatedSalary = {
+      const makeHr = {
         $set: {
-          salary: req.body.salary
+          role: 'hr'
         },
       };
-      const result = await userCollection.updateOne(filter, updatedSalary);
+      const result = await userCollection.updateOne(filter, makeHr);
       res.send(result);
     });
 
