@@ -77,6 +77,18 @@ async function run() {
       const result = await userCollection.updateOne(filter, updatedSalary);
       res.send(result);
     });
+    
+    app.patch('/update-salary/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedSalary = {
+        $set: {
+          salary: req.body.salary
+        },
+      };
+      const result = await userCollection.updateOne(filter, updatedSalary);
+      res.send(result);
+    });
 
     // employee related apis
     app.post('/work-sheet', async (req, res) => {
