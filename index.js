@@ -3,6 +3,7 @@ const cors = require('cors');
 require('dotenv').config();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const jwt = require('jsonwebtoken');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const app = express();
 const port = process.env.port || 5000;
 
@@ -36,6 +37,7 @@ async function run() {
     const userCollection = client.db('work-nest').collection('users');
     const workSheetCollection = client.db('work-nest').collection('workSheets');
     const contactCollection = client.db('work-nest').collection('contacts');
+    const paymentCollection = client.db('work-nest').collection('payments');
     const serviceCollection = client.db('work-nest').collection('services');
     const reviewsCollection = client.db('work-nest').collection('reviews');
     const featuresCollection = client.db('work-nest').collection('features');
@@ -89,9 +91,9 @@ async function run() {
 
     app.get('/role/:email', verifyToken, async (req, res) => {
       const email = req.params.email;
-      // if (email !== req.decoded.email) {
-      //   return res.status(403).send({ message: 'forbidden access' })
-      // }
+      if (email !== req.decoded.email) {
+        return res.status(403).send({ message: 'forbidden access' })
+      }
       const query = { email: email };
       const result = await userCollection.findOne(query);
       res.send(result);
@@ -164,9 +166,16 @@ async function run() {
       const result = await workSheetCollection.find(query).toArray();
       res.send(result);
     });
-
+    // hr related apis
     app.get('/employees-list', verifyToken, async (req, res) => {
       const result = await userCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.get('/single-employee/:email', async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const result = await userCollection.findOne(query);
       res.send(result);
     });
 
@@ -207,6 +216,28 @@ async function run() {
         console.error("Error fetching work records:", err);
         res.status(500).send({ error: "Something went wrong" });
       }
+    });
+
+    // payment intent
+    app.post('/create-payment-intent', async (req, res) => {
+      const { salary } = req?.body;
+      const amount = parseInt(salary * 100);
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: "usd",
+        description: "Premium Subscription for WorkNest",
+        payment_method_types: ['card'],
+      });
+
+
+      res.send({ client_secret: paymentIntent.client_secret });
+    });
+
+    app.post('/employee-payment', async (req, res) => {
+      const { paymentDetails } = req.body;
+      const result = await paymentCollection.insertOne(paymentDetails);
+      res.send(result);
     });
 
     app.get('/testimonials', async (req, res) => {
