@@ -8,7 +8,7 @@ The backend is built with **Express.js**, uses **MongoDB** as the primary databa
 
 ## 🌐 Related Repositories
 
-- ✅ [WorkNest Client (Frontend)](https://github.com/your-username/worknest-client)
+- ✅ [WorkNest Client (Frontend)](https://github.com/Md-Sufian-Jidan/work-nest-client)
 
 ---
 
@@ -38,7 +38,6 @@ The backend is built with **Express.js**, uses **MongoDB** as the primary databa
 ## 🔐 Environment Variables
 
 Create a `.env` file in the root of your `/server` folder:
-
 
 ---
 
