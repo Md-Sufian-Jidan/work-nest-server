@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const jwt = require('jsonwebtoken');
 const app = express();
 const port = process.env.port || 5000;
 
@@ -39,6 +40,42 @@ async function run() {
     const reviewsCollection = client.db('work-nest').collection('reviews');
     const featuresCollection = client.db('work-nest').collection('features');
 
+    // middlewares 
+    const verifyToken = (req, res, next) => {
+      // console.log('inside verify token', req.headers.authorization);
+      if (!req.headers.authorization) {
+        return res.status(401).send({ message: 'unauthorized access' });
+      }
+      const token = req.headers.authorization.split(' ')[1];
+      jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+          return res.status(401).send({ message: 'unauthorized access' })
+        }
+        req.decoded = decoded;
+        next();
+      });
+    };
+
+    // use verify admin after verifyToken
+    const verifyAdmin = async (req, res, next) => {
+      const email = req.decoded.email;
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      const isAdmin = user?.role === 'admin';
+      if (!isAdmin) {
+        return res.status(403).send({ message: 'forbidden access' });
+      }
+      next();
+    };
+
+    // jwt related api
+    app.post('/jwt', async (req, res) => {
+      const user = req.body;
+      console.log(req.headers);
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+      res.send({ token });
+    });
+
     app.post('/users', async (req, res) => {
       const user = req.body;
       const query = { email: user.email };
@@ -50,7 +87,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get('/role/:email', async (req, res) => {
+    app.get('/role/:email', verifyToken, async (req, res) => {
       const email = req.params.email;
       // if (email !== req.decoded.email) {
       //   return res.status(403).send({ message: 'forbidden access' })
@@ -61,19 +98,19 @@ async function run() {
     });
 
     // contact page api
-    app.post("/contact-us", async (req, res) => {
+    app.post("/contact-us", verifyToken, async (req, res) => {
       const messageData = req.body;
       const result = await contactCollection.insertOne(messageData);
       res.send(result);
     });
 
     // admin related apis
-    app.get('/all-verified-employees', async (req, res) => {
+    app.get('/all-verified-employees', verifyToken, verifyAdmin, async (req, res) => {
       const result = await userCollection.find().toArray();
       res.send(result);
     });
 
-    app.patch('/update-salary/:id', async (req, res) => {
+    app.patch('/update-salary/:id', verifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const updatedSalary = {
@@ -85,7 +122,7 @@ async function run() {
       res.send(result);
     });
 
-    app.patch('/make-hr/:id', async (req, res) => {
+    app.patch('/make-hr/:id', verifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const makeHr = {
@@ -97,7 +134,7 @@ async function run() {
       res.send(result);
     });
 
-    app.patch('/fired-user/:id', async (req, res) => {
+    app.patch('/fired-user/:id', verifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const fireEmployee = {
@@ -109,31 +146,31 @@ async function run() {
       res.send(result);
     });
 
-    app.get('/admin-contact', async (req, res) => {
+    app.get('/admin-contact', verifyToken, verifyAdmin, async (req, res) => {
       const result = await contactCollection.find().toArray();
       res.send(result);
     });
 
     // employee related apis
-    app.post('/work-sheet', async (req, res) => {
+    app.post('/work-sheet', verifyToken, async (req, res) => {
       const entry = req.body;
       const result = await workSheetCollection.insertOne(entry);
       res.send(result);
     });
 
-    app.get('/work-sheet/:email', async (req, res) => {
+    app.get('/work-sheet/:email', verifyToken, async (req, res) => {
       const email = req.params.email;
       const query = { email: email };
       const result = await workSheetCollection.find(query).toArray();
       res.send(result);
     });
 
-    app.get('/employees-list', async (req, res) => {
+    app.get('/employees-list', verifyToken, async (req, res) => {
       const result = await userCollection.find().toArray();
       res.send(result);
     });
 
-    app.patch('/verify-employee/:id', async (req, res) => {
+    app.patch('/verify-employee/:id', verifyToken, async (req, res) => {
       const update = req.body?.verified;
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
