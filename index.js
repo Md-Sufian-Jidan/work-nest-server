@@ -44,7 +44,6 @@ async function run() {
 
     // middlewares 
     const verifyToken = (req, res, next) => {
-      // console.log('inside verify token', req.headers.authorization);
       if (!req.headers.authorization) {
         return res.status(401).send({ message: 'unauthorized access' });
       }
@@ -57,8 +56,6 @@ async function run() {
         next();
       });
     };
-
-    // use verify admin after verifyToken
     const verifyAdmin = async (req, res, next) => {
       const email = req.decoded.email;
       const query = { email: email };
@@ -192,50 +189,33 @@ async function run() {
       res.send(result);
     });
 
-    // app.get('/all-work-records', async (req, res) => {
-    //   const employee = req?.query?.employee || "";
-    //   const query = employee ? { name: employee } : {};
-    //   const result = await workSheetCollection.find(query).toArray();
-    //   console.log('15222222',query);
-    //   res.send(result);
-    // });
-
     app.get('/all-work-records', async (req, res) => {
-      const employee = req.query.employee || "";
-
-      // Adjust 'employeeName' to match your DB schema
-      const query = employee ? { employeeName: employee } : {};
-
-      console.log("Filtering by employee:", employee);
-      console.log("Query:", query);
-
-      try {
-        const result = await workSheetCollection.find(query).toArray();
-        res.send(result);
-      } catch (err) {
-        console.error("Error fetching work records:", err);
-        res.status(500).send({ error: "Something went wrong" });
-      }
+      const employeeName = req.query.employee || "";
+      const query = employeeName ? { name: employeeName } : {};
+      const result = await workSheetCollection.find(query).toArray();
+      res.send(result);
     });
 
     // payment intent
     app.post('/create-payment-intent', async (req, res) => {
-      const { salary } = req?.body;
-      const amount = parseInt(salary * 100);
-
+      const { employeeId, amount, month, year } = req.body;
+      const salary = parseInt(amount * 100);
+      const existing = await paymentCollection.findOne({ employeeId });
+      if (existing) {
+        return res.send({ error: "Employee already paid for this month." });
+      }
       const paymentIntent = await stripe.paymentIntents.create({
-        amount: amount,
+        amount: salary,
         currency: "usd",
-        description: "Premium Subscription for WorkNest",
         payment_method_types: ['card'],
+        description: "Software development services"
       });
-
 
       res.send({ client_secret: paymentIntent.client_secret });
     });
 
     app.post('/employee-payment', async (req, res) => {
-      const { paymentDetails } = req.body;
+      const paymentDetails = req.body;
       const result = await paymentCollection.insertOne(paymentDetails);
       res.send(result);
     });

@@ -24,14 +24,26 @@ The backend is built with **Express.js**, uses **MongoDB** as the primary databa
 
 ---
 
+## 🔐 Security
+
+- ✅ **JWT Token Authentication**
+- ✅ **`verifyToken` middleware** for all protected routes
+- ✅ **`verifyAdmin` middleware** for admin-only endpoints
+- ✅ Stripe Payment Integration (with `description`, `payment_method_types`, and `INR` currency)
+
+---
+
 ## 🧰 Tech Stack
 
-| Dependency   | Purpose                                |
-|--------------|----------------------------------------|
-| **Express 5**| HTTP server and routing                |
-| **MongoDB**  | Database connection and queries        |
-| **CORS**     | Enable cross-origin requests           |
-| **dotenv**   | Environment variable management        |
+| Dependency                | Purpose                          |
+|---------------------------|----------------------------------|
+| **Express.js**            | HTTP server and routing          |
+| **MongoDB v6**            | Database connection and queries  |
+| **JWT (jsonwebtoken)**    | Token-based authentication       |
+| **CORS**                  | Cross-origin access              |
+| **Dotenv**                | Manage secret keys and config    |
+| **Stripe SDK v18**        | Payment processing               |
+
 
 ---
 
