@@ -196,11 +196,18 @@ async function run() {
       res.send(result);
     });
 
+    app.get('/payment-history/:email', async (req, res) => {
+      const email = { employeeEmail: req.params.email }
+      const result = await paymentCollection.find(email).toArray();
+      res.send(result);
+    });
+
     // payment intent
     app.post('/create-payment-intent', async (req, res) => {
-      const { employeeId, amount, month, year } = req.body;
+      const { employeeId, employeeEmail, amount, month, year } = req.body;
       const salary = parseInt(amount * 100);
-      const existing = await paymentCollection.findOne({ employeeId });
+      console.log(employeeId, employeeEmail, amount, month, year);
+      const existing = await paymentCollection.findOne({ employeeId, employeeEmail, month, year });
       if (existing) {
         return res.send({ error: "Employee already paid for this month." });
       }
