@@ -103,6 +103,13 @@ async function run() {
       res.send(result);
     });
 
+    // profile page api
+    app.get('/profile/:email', async(req, res) => {
+      const email = {email: req.query.email};
+      const result = await userCollection.findOne(email);
+      res.send(result);
+    });
+
     // admin related apis
     app.get('/all-verified-employees', verifyToken, verifyAdmin, async (req, res) => {
       const result = await userCollection.find().toArray();
@@ -206,7 +213,6 @@ async function run() {
     app.post('/create-payment-intent', async (req, res) => {
       const { employeeId, employeeEmail, amount, month, year } = req.body;
       const salary = parseInt(amount * 100);
-      console.log(employeeId, employeeEmail, amount, month, year);
       const existing = await paymentCollection.findOne({ employeeId, employeeEmail, month, year });
       if (existing) {
         return res.send({ error: "Employee already paid for this month." });
