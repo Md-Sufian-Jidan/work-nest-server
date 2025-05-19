@@ -104,9 +104,19 @@ async function run() {
     });
 
     // profile page api
-    app.get('/profile/:email', async(req, res) => {
-      const email = {email: req.query.email};
+    app.get('/profile/:email', verifyToken, async (req, res) => {
+      const email = { email: req.params.email };
       const result = await userCollection.findOne(email);
+      res.send(result);
+    });
+
+    app.patch("/update-profile/:email", verifyToken, async (req, res) => {
+      const email = req.params.email;
+      const updateData = req.body;
+      const result = await userCollection.updateOne(
+        { email },
+        { $set: updateData }
+      );
       res.send(result);
     });
 
@@ -176,7 +186,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get('/single-employee/:email', async (req, res) => {
+    app.get('/single-employee/:email', verifyToken, async (req, res) => {
       const email = req.params.email;
       const query = { email: email };
       const result = await userCollection.findOne(query);
@@ -196,21 +206,21 @@ async function run() {
       res.send(result);
     });
 
-    app.get('/all-work-records', async (req, res) => {
+    app.get('/all-work-records', verifyToken, async (req, res) => {
       const employeeName = req.query.employee || "";
       const query = employeeName ? { name: employeeName } : {};
       const result = await workSheetCollection.find(query).toArray();
       res.send(result);
     });
 
-    app.get('/payment-history/:email', async (req, res) => {
+    app.get('/payment-history/:email', verifyToken, async (req, res) => {
       const email = { employeeEmail: req.params.email }
       const result = await paymentCollection.find(email).toArray();
       res.send(result);
     });
 
     // payment intent
-    app.post('/create-payment-intent', async (req, res) => {
+    app.post('/create-payment-intent', verifyToken, async (req, res) => {
       const { employeeId, employeeEmail, amount, month, year } = req.body;
       const salary = parseInt(amount * 100);
       const existing = await paymentCollection.findOne({ employeeId, employeeEmail, month, year });
@@ -227,7 +237,7 @@ async function run() {
       res.send({ client_secret: paymentIntent.client_secret });
     });
 
-    app.post('/employee-payment', async (req, res) => {
+    app.post('/employee-payment', verifyToken, async (req, res) => {
       const paymentDetails = req.body;
       const result = await paymentCollection.insertOne(paymentDetails);
       res.send(result);
