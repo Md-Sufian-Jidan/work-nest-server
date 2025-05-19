@@ -120,6 +120,42 @@ async function run() {
       res.send(result);
     });
 
+    // overview page
+    app.get("/dashboard-overview", verifyToken, async (req, res) => {
+      const email = req.query.email;
+      const user = await userCollection.findOne({ email });
+
+      let result = { role: user.role };
+
+      if (user.role === "admin") {
+        
+        const employees = await userCollection.find({ role: "employee" }).toArray();
+        const hrs = await userCollection.find({ role: "hr" }).toArray();
+        const fired = await userCollection.find({ status: "fired" }).toArray();
+        result.totalEmployees = employees.length;
+        result.totalHRs = hrs.length;
+        result.totalFired = fired.length;
+      } else if (user.role === "hr") {
+        const works = await workSheetCollection.find().toArray();
+        const currentMonth = new Date().getMonth() + 1;
+        const filtered = works.filter(w => new Date(w.date).getMonth() + 1 === currentMonth);
+        const hours = filtered.reduce((sum, cur) => sum + Number(cur.hoursWorked), 0);
+        result.managedEmployees = new Set(works.map(w => w.email)).size;
+        result.tasksThisMonth = filtered.length;
+        result.avgWorkHours = Math.round(hours / filtered.length || 0);
+      } else if (user.role === "employee") {
+        const works = await workSheetCollection.find({ email }).toArray();
+        const payments = await paymentCollection.find({ email }).sort({ date: -1 }).toArray();
+        const currentMonth = new Date().getMonth() + 1;
+        const thisMonthWorks = works.filter(w => new Date(w.date).getMonth() + 1 === currentMonth);
+        result.totalHours = thisMonthWorks.reduce((sum, cur) => sum + Number(cur.hoursWorked), 0);
+        result.lastPayment = payments[0]?.employeeSalary || 0;
+        result.status = user.status;
+      }
+
+      res.send(result);
+    });
+
     // admin related apis
     app.get('/all-verified-employees', verifyToken, verifyAdmin, async (req, res) => {
       const result = await userCollection.find().toArray();
